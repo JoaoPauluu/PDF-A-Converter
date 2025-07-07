@@ -50,22 +50,31 @@ def main() -> None:
     input()
 
     pda_def_file = current_dir_at("PDFA_def.ps")
+    color_file = current_dir_at("AdobeRGB1998.icc")
     for file in nomes_input:
         input_file = current_dir_at('input', file)
         output_file = current_dir_at('output', file)
         args = [
+            "gs",
             "-dPDFA=2",
-            "-dBATCH",
-            "-dNOPAUSE",
+            #"-dBATCH",
+            #"-dNOPAUSE",
             "-sDEVICE=pdfwrite",
-            f'-sOutputFile="{output_file}"',
-            f'"{pda_def_file}"',
-            f'"{input_file}"'
+            #"-sProcessColorModel=DeviceRGB",
+            "-sColorConversionStrategy=RGB",
+            "-sPDFACompatibilityPolicy=1",
+            f'-sOutputFile={output_file}',
+            f"--permit-file-read={color_file}"
+            f'{pda_def_file}',
+            f'{input_file}'
         ]
-        command_string = ' '.join(args).encode('utf-8')
-        console.print(command_string)
+
+        console.print(input_file)
+        console.print(output_file)
+        #command_string = ' '.join(args).encode('utf-8')
+        #console.print(command_string)
         try:
-            ghostscript.Ghostscript('test').run_string(command_string)
+            ghostscript.Ghostscript(*args)
             console.print(file + " -> Sucesso", style="green")
         except:
             console.print(file + " -> Algo deu errado", style="red")

@@ -1,16 +1,16 @@
 %!
-% PDFA_def.ps - Corrected for modern Ghostscript versions
+% PDFA_def.ps - Corrected for Adobe RGB (1998)
 
 % Define the path to the ICC Profile.
-% Make sure 'sRGB.icc' is in the same directory or provide a full path.
-/ICCProfile (sRGB.icc) def
+% Make sure 'AdobeRGB1998.icc' is in the same directory or provide a full path.
+/ICCProfile (AdobeRGB1998.icc) def
 
 % Create the OutputIntent dictionary
 <<
   /Type /OutputIntent
   /S /GTS_PDFA1
-  /OutputConditionIdentifier (sRGB IEC61966-2.1)
-  /Info (sRGB IEC61966-2.1)
+  /OutputConditionIdentifier (Adobe RGB (1998))
+  /Info (Adobe RGB (1998))
   /RegistryName (http://www.color.org)
   /DestOutputProfile (%pipe%ICCProfile) % Read the profile file
 >>
