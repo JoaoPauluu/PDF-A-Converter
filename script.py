@@ -14,10 +14,17 @@ def current_dir_at(*args):
 
 
 def main() -> None:
-    os.environ['GHOSTSCRIPT_DLL'] = current_dir_at('ghostscript', 'bin', 'gsdll64.dll')
+    console = Console()
+
+    console.print("\n\n\n\n")
+    if os.path.isdir(current_dir_at('ghostscript', 'bin', 'gsdll64.dll')):
+        os.environ['GHOSTSCRIPT_DLL'] = current_dir_at('ghostscript', 'bin', 'gsdll64.dll')
+        console.print("Utilizando versão portable do ghostscript")
+    else:
+        console.print("Ghostscript local não foi encontrado. Tentando utilizar ghostscript do sistema:")
+    
     import ghostscript
 
-    console = Console()
 
     #Bem-vindo
     console.print("\n\n")
