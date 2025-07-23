@@ -1,6 +1,6 @@
 import os
-import ctypes
 from rich.console import Console
+import subprocess
 
 #from dotenv import load_dotenv
 
@@ -15,16 +15,6 @@ def current_dir_at(*args):
 
 def main() -> None:
     console = Console()
-
-    console.print("\n\n\n\n")
-    if os.path.isdir(current_dir_at('ghostscript', 'bin', 'gsdll64.dll')):
-        os.environ['GHOSTSCRIPT_DLL'] = current_dir_at('ghostscript', 'bin', 'gsdll64.dll')
-        console.print("Utilizando versão portable do ghostscript")
-    else:
-        console.print("Ghostscript local não foi encontrado. Tentando utilizar ghostscript do sistema:")
-    
-    import ghostscript
-
 
     #Bem-vindo
     console.print("\n\n")
@@ -56,32 +46,24 @@ def main() -> None:
     console.print("\nPressione [bold]Enter[/bold] para converter os documentos acima...")
     input()
 
-    pda_def_file = current_dir_at("PDFA_def.ps")
-    color_file = current_dir_at("AdobeRGB1998.icc")
+    gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
     for file in nomes_input:
         input_file = current_dir_at('input', file)
         output_file = current_dir_at('output', file)
-        args = [
-            "gs",
-            "-dPDFA=2",
-            #"-dBATCH",
-            #"-dNOPAUSE",
+        command = [
+            f"{gs_path}",
             "-sDEVICE=pdfwrite",
-            #"-sProcessColorModel=DeviceRGB",
-            "-sColorConversionStrategy=RGB",
-            "-sPDFACompatibilityPolicy=1",
-            f'-sOutputFile={output_file}',
-            f"--permit-file-read={color_file}"
-            f'{pda_def_file}',
-            f'{input_file}'
+            "-dPDFA=2",
+            "-dPDFACompatibilityPolicy=1",
+            "-sColorConversionStrategy=UseDeviceIndependentColor",
+            f'-o{output_file}',
+            "-f",
+            f"{input_file}"
         ]
 
-        console.print(input_file)
-        console.print(output_file)
-        #command_string = ' '.join(args).encode('utf-8')
-        #console.print(command_string)
         try:
-            ghostscript.Ghostscript(*args)
+            #console.print(command)
+            subprocess.run(command, check=True)
             console.print(file + " -> Sucesso", style="green")
         except:
             console.print(file + " -> Algo deu errado", style="red")
