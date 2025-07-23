@@ -2,8 +2,6 @@ import os
 from rich.console import Console
 import subprocess
 
-#from dotenv import load_dotenv
-
 
 def current_dir_at(*args):
     return_str = os.getcwd()
@@ -22,6 +20,16 @@ def main() -> None:
     console.print("Script feito por:", style="bold") 
     console.print("João Paulo Chiari de Gasperi", style="bold green")
     console.print("\n\n")
+
+    gs_path = ''
+
+    if os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
+        gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
+        console.print(f"Instalação local do Ghostscript detectada! Utilizando: {gs_path}")
+    if not os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
+        gs_path = 'gswin64c'
+        console.print("Instalação local do Ghostscript não detectada. Tentando utilizar instalação do sistema...")
+
 
     input_folder = current_dir_at("input")
     output_folder = current_dir_at("output")
@@ -46,7 +54,6 @@ def main() -> None:
     console.print("\nPressione [bold]Enter[/bold] para converter os documentos acima...")
     input()
 
-    gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
     for file in nomes_input:
         input_file = current_dir_at('input', file)
         output_file = current_dir_at('output', file)
