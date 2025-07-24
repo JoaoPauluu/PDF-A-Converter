@@ -21,14 +21,18 @@ def main() -> None:
     console.print("João Paulo Chiari de Gasperi", style="bold green")
     console.print("\n\n")
 
-    gs_path = ''
 
+    #Define a localização do ghostscript
+    gs_path = ''
     if os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
         gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
         console.print(f"Instalação local do Ghostscript detectada! Utilizando: {gs_path}")
     if not os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
         gs_path = 'gswin64c'
         console.print("Instalação local do Ghostscript não detectada. Tentando utilizar instalação do sistema...")
+
+    console.print("\n\n")
+
 
 
     input_folder = current_dir_at("input")
@@ -45,6 +49,7 @@ def main() -> None:
     if not nomes_input:
         console.print("[red]Nenhum arquivo encontrado na pasta [/red][bold purple]input")
         console.print("[red]Por favor, adicione arquivos PDF e rode o programa novamente.[/red]")
+        input()
         return
 
     console.print("Arquivos detectados na pasta [bold purple]input")
@@ -54,27 +59,47 @@ def main() -> None:
     console.print("\nPressione [bold]Enter[/bold] para converter os documentos acima...")
     input()
 
-    for file in nomes_input:
-        input_file = current_dir_at('input', file)
-        output_file = current_dir_at('output', file)
-        command = [
-            f"{gs_path}",
-            "-sDEVICE=pdfwrite",
-            "-dPDFA=2",
-            "-dPDFACompatibilityPolicy=1",
-            "-sColorConversionStrategy=UseDeviceIndependentColor",
-            f'-o{output_file}',
-            "-f",
-            f"{input_file}"
-        ]
+    open('log.txt', 'w').close() # Esvazia log.txt antes de converter os pdfs
 
-        try:
-            #console.print(command)
-            subprocess.run(command, check=True)
-            console.print(file + " -> Sucesso", style="green")
-        except:
-            console.print(file + " -> Algo deu errado", style="red")
-            
+    with open(current_dir_at('log.txt'), 'a') as logfile:
+        successfully_converted = 0
+        for index, file in enumerate(nomes_input):
+            input_file = current_dir_at('input', file)
+            output_file = current_dir_at('output', file)
+            command = [
+                f"{gs_path}",
+                "-sDEVICE=pdfwrite",
+                "-dPDFA=2",
+                "-dPDFACompatibilityPolicy=1",
+                "-sColorConversionStrategy=UseDeviceIndependentColor",
+                f'-o{output_file}',
+                "-f",
+                f"{input_file}"
+            ]
+
+            counter_str = f"[{index + 1} / {len(nomes_input)}]"
+            logfile.write(f"\n\n\n\nArquivo {counter_str} -> {file}\n\n\n\n")
+            logfile.flush()
+
+            try:
+                #subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                subprocess.run(command, check=True, stdout=logfile, stderr=logfile, encoding="cp437")
+                
+                print_str = f"{counter_str} {file} -> Convertido com sucesso"
+                console.print(print_str, style="green")
+                successfully_converted += 1
+            except:
+                print_str = f"{counter_str} {file} -> Algo deu errado"
+                console.print(print_str, style="red")
+
+
+    console.print("\nConversão concluída!", style="green")
+    if successfully_converted == len(nomes_input):
+        console.print("Todos os arquivos foram convertidos com sucesso!")
+    else:
+        console.print(f"{successfully_converted} arquivo(s) convertido(s) com sucesso, de um total de {len(nomes_input)} arquivo(s)")
+    console.print("Consultar log.txt para mais detalhes")
+    input()
 
 
 if __name__ == '__main__':
