@@ -4,3 +4,7 @@
 /input
 /output
 log.txt
+/__pycache__
+log_conversion.txt
+log_raster.txt
+/rasters

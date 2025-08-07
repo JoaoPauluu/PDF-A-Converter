@@ -11,44 +11,11 @@ def current_dir_at(*args):
     return return_str
 
 
-def main() -> None:
-    console = Console()
-
-    #Bem-vindo
-    console.print("\n\n")
-    console.print("Conversor de PDF para PDF/A-2b", style="bold green")
-    console.print("Script feito por:", style="bold") 
-    console.print("João Paulo Chiari de Gasperi", style="bold green")
-    console.print("\n\n")
-
-
-    #Define a localização do ghostscript
-    gs_path = ''
-    if os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
-        gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
-        console.print(f"Instalação local do Ghostscript detectada! Utilizando: {gs_path}")
-    if not os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
-        gs_path = 'gswin64c'
-        console.print("Instalação local do Ghostscript não detectada. Tentando utilizar instalação do sistema...")
-
-    console.print("\n\n")
-
-
-
-    input_folder = current_dir_at("input")
-    output_folder = current_dir_at("output")
-
-    #cria pastas
-    if not os.path.exists(input_folder):
-        os.mkdir(input_folder)
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-
-
+def convert_pdfs(gs_path: str, logfile_path: str, input_folder: str, output_folder: str, console: Console) -> None:
     nomes_input = os.listdir(input_folder)
     if not nomes_input:
-        console.print("[red]Nenhum arquivo encontrado na pasta [/red][bold purple]input")
-        console.print("[red]Por favor, adicione arquivos PDF e rode o programa novamente.[/red]")
+        console.print("[red]Nenhum arquivo encontrado na pasta [/red][bold purple]rasters")
+        console.print("[red]Por favor, adicione ou rasterize arquivos PDF e rode o programa novamente.[/red]")
         input()
         return
 
@@ -59,13 +26,13 @@ def main() -> None:
     console.print("\nPressione [bold]Enter[/bold] para converter os documentos acima...")
     input()
 
-    open('log.txt', 'w').close() # Esvazia log.txt antes de converter os pdfs
+    open(logfile_path, 'w').close() # Esvazia log antes de converter os pdfs
 
-    with open(current_dir_at('log.txt'), 'a') as logfile:
+    with open(current_dir_at(logfile_path), 'a') as logfile:
         successfully_converted = 0
         for index, file in enumerate(nomes_input):
-            input_file = current_dir_at('input', file)
-            output_file = current_dir_at('output', file)
+            input_file = os.path.join(input_folder, file)
+            output_file = os.path.join(output_folder, file)
             command = [
                 f"{gs_path}",
                 "-sDEVICE=pdfwrite",
@@ -98,9 +65,5 @@ def main() -> None:
         console.print("Todos os arquivos foram convertidos com sucesso!")
     else:
         console.print(f"{successfully_converted} arquivo(s) convertido(s) com sucesso, de um total de {len(nomes_input)} arquivo(s)")
-    console.print("Consultar log.txt para mais detalhes")
+    console.print(f"Consultar {logfile_path} para mais detalhes")
     input()
-
-
-if __name__ == '__main__':
-    main()
