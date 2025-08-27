@@ -12,58 +12,65 @@ def current_dir_at(*args):
 
 
 def convert_pdfs(gs_path: str, logfile_path: str, input_folder: str, output_folder: str, console: Console) -> None:
-    nomes_input = os.listdir(input_folder)
-    if not nomes_input:
-        console.print("[red]Nenhum arquivo encontrado na pasta [/red][bold purple]rasters")
+# Collect all files recursively
+    all_files = []
+    for root, _, files in os.walk(input_folder):
+        for file in files:
+            if file.lower().endswith(".pdf"):  # Only convert PDFs
+                all_files.append(os.path.join(root, file))
+
+    if not all_files:
+        console.print("[red]Nenhum arquivo PDF encontrado na pasta [/red][bold purple]rasters")
         console.print("[red]Por favor, adicione ou rasterize arquivos PDF e rode o programa novamente.[/red]")
         input()
         return
 
     console.print("Arquivos detectados na pasta [bold purple]input")
-    for file in nomes_input:
-        console.print(file, style="yellow")
+    for file in all_files:
+        console.print(os.path.relpath(file, input_folder), style="yellow")
 
     console.print("\nPressione [bold]Enter[/bold] para converter os documentos acima...")
     input()
 
-    open(logfile_path, 'w').close() # Esvazia log antes de converter os pdfs
+    # Empty logfile before converting
+    open(logfile_path, 'w').close()
 
-    with open(current_dir_at(logfile_path), 'a') as logfile:
+    with open(logfile_path, 'a', encoding="utf-8") as logfile:
         successfully_converted = 0
-        for index, file in enumerate(nomes_input):
-            input_file = os.path.join(input_folder, file)
-            output_file = os.path.join(output_folder, file)
+        for index, input_file in enumerate(all_files, start=1):
+            # Preserve subfolder structure
+            relative_path = os.path.relpath(input_file, input_folder)
+            output_file = os.path.join(output_folder, relative_path)
+
+            # Ensure output subfolder exists
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
             command = [
-                f"{gs_path}",
+                gs_path,
                 "-sDEVICE=pdfwrite",
                 "-dPDFA=2",
                 "-dPDFACompatibilityPolicy=1",
                 "-sColorConversionStrategy=UseDeviceIndependentColor",
                 f'-o{output_file}',
                 "-f",
-                f"{input_file}"
+                input_file
             ]
 
-            counter_str = f"[{index + 1} / {len(nomes_input)}]"
-            logfile.write(f"\n\n\n\nArquivo {counter_str} -> {file}\n\n\n\n")
+            counter_str = f"[{index} / {len(all_files)}]"
+            logfile.write(f"\n\n\n\nArquivo {counter_str} -> {relative_path}\n\n\n\n")
             logfile.flush()
 
             try:
-                #subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
                 subprocess.run(command, check=True, stdout=logfile, stderr=logfile, encoding="cp437")
-                
-                print_str = f"{counter_str} {file} -> Convertido com sucesso"
+
+                print_str = f"{counter_str} {relative_path} -> Convertido com sucesso"
                 console.print(print_str, style="green")
                 successfully_converted += 1
-            except:
-                print_str = f"{counter_str} {file} -> Algo deu errado"
+            except Exception as e:
+                print_str = f"{counter_str} {relative_path} -> Algo deu errado"
                 console.print(print_str, style="red")
+                logfile.write(f"\nErro: {e}\n")
 
-
-    console.print("\nConversão concluída!", style="green")
-    if successfully_converted == len(nomes_input):
-        console.print("Todos os arquivos foram convertidos com sucesso!")
-    else:
-        console.print(f"{successfully_converted} arquivo(s) convertido(s) com sucesso, de um total de {len(nomes_input)} arquivo(s)")
+    console.print(f"\n[bold green]{successfully_converted}[/bold green] arquivos convertidos com sucesso de um total de {len(all_files)}.")
     console.print(f"Consultar {logfile_path} para mais detalhes")
     input()
