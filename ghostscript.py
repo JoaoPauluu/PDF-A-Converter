@@ -62,7 +62,7 @@ class Ghostscript():
 
         logger = logging.getLogger('GHOSTSCRIPT')
         file_handler = logging.FileHandler(logfile_path)
-        console_handler = RichHandler()
+        console_handler = RichHandler(markup=True)
         formatter = logging.Formatter('[%(name)s] - [%(levelname)s] => %(message)s')
 
         logger.setLevel(logging.DEBUG)

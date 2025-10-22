@@ -84,7 +84,7 @@ def main():
 
         logger.info("Pdfs encontrados:")
         for input_file_path in pdfs_paths:
-            logger.info(os.path.relpath(input_file_path, root_input_folder_path))
+            logger.info(f"[yellow]{os.path.relpath(input_file_path, root_input_folder_path)}[/yellow]")
 
         logger.warning("Precione enter para converter os pdfs acima!")
         input()
