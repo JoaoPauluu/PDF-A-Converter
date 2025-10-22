@@ -2,11 +2,8 @@ import os
 import subprocess
 import logging
 
-def current_dir_at(*args):
-    return_str = os.getcwd()
-    for item in args:
-        return_str = os.path.join(return_str, item)
-    return return_str
+
+from aux_func import current_dir_at
 
 class Ghostscript():
     gs_path:str
@@ -17,7 +14,7 @@ class Ghostscript():
         self._set_gs_path()
         pass
 
-    def run(self, input_file:str, output_file:str, *gs_parameters:str) -> subprocess.CompletedProcess:
+    def run(self, input_file:str, output_file:str, *gs_parameters:str) -> tuple[bool, subprocess.CompletedProcess] :
         self.logger.debug(f"Running GS with {gs_parameters}")
         
         command = list(gs_parameters)
@@ -25,9 +22,17 @@ class Ghostscript():
         command.append(f'-o {output_file}')
         command.append(input_file)
 
-        return subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # SHOULD ADD LOGGING
 
-    def raster_file(self, input_file:str, output_file:str, downscale_factor:int=2) -> subprocess.CompletedProcess:
+        complete_process = None
+        try:
+            complete_process = subprocess.run(command, check=True, capture_output=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # SHOULD ADD LOGGING
+            self.logger.debug(complete_process.stdout)
+        except subprocess.CalledProcessError as e:
+            self.logger.debug(e.stderr)
+            return False, complete_process
+        return True, complete_process
+
+    def raster_file(self, input_file:str, output_file:str, downscale_factor:int=2) -> tuple[bool, subprocess.CompletedProcess]:
         params = ("-dNOPAUSE",
                     "-dBATCH",
                     "-sDEVICE=pdfimage24",
@@ -35,7 +40,7 @@ class Ghostscript():
                     f"-dDownScaleFactor={downscale_factor}",)
         return self.run(input_file, output_file, *params)
 
-    def to_pdfa2b(self, input_file:str, output_file:str) -> subprocess.CompletedProcess:
+    def to_pdfa2b(self, input_file:str, output_file:str) -> tuple[bool, subprocess.CompletedProcess]:
         params = ("-sDEVICE=pdfwrite",
                 "-dPDFA=2",
                 "-dPDFACompatibilityPolicy=1",
@@ -43,19 +48,29 @@ class Ghostscript():
         return self.run(input_file, output_file, *params)
 
     def _set_logger(self, logger:logging.Logger=None):
+        from datetime import datetime
+        from pathlib import Path
+        from rich.logging import RichHandler
+
+
         if logger:
             self.logger = logger
             return
         
+        logfile_path = Path(current_dir_at("logs", datetime.now().strftime("%Y-%m-%d -- %H-%M-%S") + ".txt"))
+
         logger = logging.getLogger('GHOSTSCRIPT')
-        handler = logging.StreamHandler()
+        file_handler = logging.FileHandler(logfile_path)
+        console_handler = RichHandler()
         formatter = logging.Formatter('[%(name)s] - [%(levelname)s] => %(message)s')
 
         logger.setLevel(logging.DEBUG)
-        handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.DEBUG)
+        console_handler.setLevel(logging.INFO)
 
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
         self.logger = logger
 
     def _set_gs_path(self, path=None):
@@ -64,7 +79,7 @@ class Ghostscript():
             return
         if os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
             gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
-            self.logger.info(f"Instalação local do Ghostscript detectada! Utilizando: {gs_path}")
+            self.logger.info(f"Instalação local do Ghostscript detectada!")
         if not os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
             gs_path = 'gswin64c'
-            self.logger.warning("Instalação local do Ghostscript não detectada. Tentando utilizar instalação do sistema...")
+            self.logger.warning("Instalação local do Ghostscript não detectada! Tentando utilizar instalação do sistema. Erros podem ocorrer!")
