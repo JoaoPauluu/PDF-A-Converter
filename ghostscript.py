@@ -15,17 +15,16 @@ class Ghostscript():
         pass
 
     def run(self, input_file:str, output_file:str, *gs_parameters:str) -> tuple[bool, subprocess.CompletedProcess] :
-        self.logger.debug(f"Running GS with {gs_parameters}")
-        
         command = list(gs_parameters)
         command.insert(0, self.gs_path)
-        command.append(f'-o {output_file}')
+        command.append(f"-o{output_file}")
         command.append(input_file)
 
+        self.logger.debug(f"Running GS with {command}")
 
         complete_process = None
         try:
-            complete_process = subprocess.run(command, check=True, capture_output=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # SHOULD ADD LOGGING
+            complete_process = subprocess.run(command, check=True, capture_output=True, text=True) # SHOULD ADD LOGGING
             self.logger.debug(complete_process.stdout)
         except subprocess.CalledProcessError as e:
             self.logger.debug(e.stderr)
@@ -80,6 +79,8 @@ class Ghostscript():
         if os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
             gs_path = current_dir_at('ghostscript', 'bin', 'gswin64c.exe')
             self.logger.info(f"Instalação local do Ghostscript detectada!")
+            self.gs_path = gs_path
         if not os.path.exists(current_dir_at('ghostscript', 'bin', 'gswin64c.exe')):
             gs_path = 'gswin64c'
             self.logger.warning("Instalação local do Ghostscript não detectada! Tentando utilizar instalação do sistema. Erros podem ocorrer!")
+            self.gs_path = gs_path
