@@ -32,6 +32,7 @@ class Ghostscript():
         return True, complete_process
 
     def raster_file(self, input_file:str, output_file:str, downscale_factor:int=2) -> tuple[bool, subprocess.CompletedProcess]:
+        self.logger.debug(f"Rastering file: {input_file}")
         params = ("-dNOPAUSE",
                     "-dBATCH",
                     "-sDEVICE=pdfimage24",
@@ -40,6 +41,7 @@ class Ghostscript():
         return self.run(input_file, output_file, *params)
 
     def to_pdfa2b(self, input_file:str, output_file:str) -> tuple[bool, subprocess.CompletedProcess]:
+        self.logger.debug(f"Converting file to pdfa2b: {input_file}")
         params = ("-sDEVICE=pdfwrite",
                 "-dPDFA=2",
                 "-dPDFACompatibilityPolicy=1",

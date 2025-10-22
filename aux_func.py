@@ -1,7 +1,7 @@
 from rich.console import Console
 from rich.logging import RichHandler
-import logging
 import os
+import sys
 
 
 def print_welcome(console: Console | None = None) -> None:
@@ -14,8 +14,14 @@ def print_welcome(console: Console | None = None) -> None:
     console.print("João Paulo Chiari de Gasperi", style="bold green")
     console.print("\n")
 
+def current_dir():
+    if getattr(sys, 'frozen', False):  # running as compiled .exe
+        return os.path.dirname(sys.executable)
+    else:  # running as a normal .py script
+        return os.path.dirname(os.path.abspath(__file__))
+
 def current_dir_at(*args) -> str:
-    return_str = os.getcwd()
+    return_str = current_dir()
     for item in args:
         return_str = os.path.join(return_str, item)
     return return_str
